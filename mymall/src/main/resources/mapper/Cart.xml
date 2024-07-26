@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.cart.dao.CartDao">
+<resultMap type="com.mall.table.vo.GoodsInfoVO" id="GoodsMap">
+		<result property="goodsCd" 		column="goods_cd" />
+		<result property="goodsName" 		column="goods_name" />
+		<result property="imgSeq" 		column="img_seq" />
+		<result property="regDt" 		column="reg_dt" />
+		<result property="normalPrice" 		column="normal_price" />
+		<result property="sellPrice" 		column="sell_price" />
+		<result property="content" 		column="content" />
+		<result property="imgUrl" 		column="img_url" />
+		<result property="userId" 		column="user_id" />
+		<result property="buyQty" 		column="buy_qty" />
+		<result property="thumnailUrl" 		column="thumnail_url" />
+		</resultMap>
+
+		<select id = "selectCartList" resultMap = "GoodsMap">
+		SELECT
+		B.GOODS_CD,
+		B.USER_ID,
+		A.THUMNAIL_URL,
+		A.GOODS_NAME,
+		A.CONTENT,
+		B.BUY_QTY,
+		A.SELL_PRICE * B.BUY_QTY AS SELL_PRICE
+		FROM TB_GOODS_INFO A, TB_CART_INFO B
+		WHERE B.USER_ID = #{userId}
+		AND B.GOODS_CD = A.GOODS_CD
+		</select>
+		<delete id = "DelCart">
+		DELETE
+		FROM TB_CART_INFO
+		WHERE USER_ID = #{userId}
+		AND GOODS_CD = #{goodsCd} 
+		</delete>
+		<update id ="UpQty">
+		UPDATE TB_CART_INFO SET
+		BUY_QTY = #{buyQty}
+		WHERE USER_ID = #{userId}
+		AND GOODS_CD = #{goodsCd}
+		</update>
+		
+		</mapper>
+			

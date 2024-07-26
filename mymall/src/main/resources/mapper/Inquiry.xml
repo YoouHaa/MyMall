@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.inquiry.dao.InquiryDao">
+	
+		<resultMap type="com.mall.table.vo.InquiryInfoVO" id="InquiryMap">
+		<result property="userId" 		column="user_id" />
+		<result property="boardSeq" 		column="board_seq" />
+		<result property="title" 		column="title" />
+		<result property="content" 		column="content" />
+		<result property="attchFile" 		column="attch_file" />
+		<result property="replyYn" 		column="reply_yn" />
+		<result property="replyContent" 		column="reply_content" />
+		<result property="regDt" 		column="reg_dt" />
+		<result property="delYn" 		column="del_yn" />
+		<result property="replyDt" 		column="reply_dt" />
+		<result property="userName" 		column="user_name" />
+		<result property="boardType" 		column="board_type" />
+		<result property="secretYn" 		column="secret_yn" />
+		<result property="secretPwd" 		column="secret_pwd" />
+		
+	</resultMap>
+	<select id="selectTotalInquiryCount" resultType="integer">
+		SELECT COUNT(*)
+		FROM TB_USER_INFO
+		where 1=1
+		<if test = "userName != null and userName != '' ">
+			and user_name like '%' ||#{userName}|| '%'
+			</if>
+			<if test = "replyYn != null and replyYn != '' ">
+			and reply_yn = #{replyrawYn} 
+			</if>
+			<if test = "replyDtFrom !=null and replyDtFrom!='' ">
+			and to_char(reply_dt,'yyyy-mm-dd') <![CDATA[ >= ]]> #{replyDtFrom}
+			</if>
+			<if test = "replyDtTo !=null and replyDtTo!='' ">
+			and to_char(reply_dt,'yyyy-mm-dd') <![CDATA[ <= ]]> #{replyDtTo}
+			</if>
+		</select>
+	
+	<select id="selectInquiryList" resultMap="InquiryMap">
+	SELECT
+		BOARD_SEQ,
+		BOARD_TYPE,
+		USER_ID,
+		USER_NAME,
+		TITLE,
+		REPLY_DT,
+		REPLY_YN,
+		REG_DT ,
+		SECRET_YN,
+		SECRET_PWD
+	FROM (
+	SELECT ROWNUM RN,
+	 A.BOARD_SEQ,
+	A.BOARD_TYPE,
+	A.USER_ID,
+	B.USER_NAME,
+	A.TITLE,
+	A.REPLY_DT,
+	A.REPLY_YN,
+	A.REG_DT,
+	A.SECRET_YN,
+	A.SECRET_PWD
+	FROM TB_BOARD_INFO A , TB_USER_INFO B 
+	WHERE A.USER_ID = B.USER_ID
+			<if test = "userName != null and userName != '' ">
+			and user_name like '%' ||#{userName}|| '%'
+			</if>
+			<if test = "replyYn != null and replyYn != '' ">
+			and reply_yn = #{replyrawYn} 
+			</if>
+			<if test = "replyDtFrom !=null and replyDtFrom!='' ">
+			and to_char(reply_dt,'yyyy-mm-dd') <![CDATA[ >= ]]> #{replyDtFrom}
+			</if>
+			<if test = "replyDtTo !=null and replyDtTo!='' ">
+			and to_char(reply_dt,'yyyy-mm-dd') <![CDATA[ <= ]]> #{replyDtTo}
+			</if>
+			)
+			WHERE RN<![CDATA[ >= ]]>(#{currentPage}-1)*#{countPerPage} 
+			AND RN<![CDATA[ <= ]]>#{currentPage}*#{countPerPage}
+			
+	</select>
+		<select id="selectDetailReply" resultMap="InquiryMap">
+		SELECT	
+		A.TITLE,
+		A.BOARD_TYPE,
+		A.USER_ID,
+		B.USER_NAME,
+		A.REPLY_DT,
+		A.ATTCH_FILE,
+		A.CONTENT,
+		A.REPLY_CONTENT,
+		A.SECRET_YN,
+		A.SECRET_PWD
+		FROM TB_BOARD_INFO A, TB_USER_INFO B
+		WHERE A.USER_ID = B.USER_ID
+		AND A.USER_ID = #{userId} 
+		AND A.BOARD_SEQ = #{boardSeq}
+	</select>
+	<insert id ="getReplyadding">
+	INSERT INTO TB_BOARD_INFO(
+	USER_ID,
+	BOARD_TYPE,
+	BOARD_SEQ,
+	TITLE,
+	CONTENT,
+	ATTCH_FILE,
+	REPLY_YN,
+	<if test = "secretYn != null and secretYn != '' ">
+	SECRET_YN,
+	</if>
+	<if test = "secretPwd != null and secretPwd != '' ">
+	SECRET_PWD,
+	</if>
+	REG_DT
+	)
+	VALUES(
+	#{userId},
+	#{boardType},
+	(SELECT 
+	NVL(MAX(BOARD_SEQ),0)+1
+	FROM TB_BOARD_INFO WHERE USER_ID=#{userId} ),
+	#{title},
+	#{content},
+	#{attchFile},
+	'N',
+	<if test = "secretYn != null and secretYn != '' ">
+	#{secretYn},
+	</if>
+	<if test = "secretPwd != null and secretPwd != '' ">
+	#{secretPwd},
+	</if>
+	SYSDATE
+	)
+	</insert>
+	
+</mapper>

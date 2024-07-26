@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.order.dao.OrderDao">
+<resultMap type="com.mall.table.vo.OrderInfoVO" id="OrderMap">
+		<result property="goodsCd" 		column="goods_cd" />
+		<result property="userId" 		column="user_id" />
+		<result property="phone" 		column="phone" />
+		<result property="addr" 		column="addr" />
+		<result property="addrDtl" 		column="addr_dtl" />
+		<result property="receiveName" 		column="receive_name" />
+		<result property="userName" 		column="user_name" />
+		<result property="orderNo" 		column="order_no" />
+		</resultMap>
+		<resultMap type="com.mall.table.vo.GoodsInfoVO" id="GoodsMap">
+		<result property="goodsCd" 		column="goods_cd" />
+		<result property="goodsName" 		column="goods_name" />
+		<result property="imgSeq" 		column="img_seq" />
+		<result property="regDt" 		column="reg_dt" />
+		<result property="normalPrice" 		column="normal_price" />
+		<result property="sellPrice" 		column="sell_price" />
+		<result property="content" 		column="content" />
+		<result property="imgUrl" 		column="img_url" />
+		<result property="userId" 		column="user_id" />
+		<result property="buyQty" 		column="buy_qty" />
+		<result property="thumnailUrl" 		column="thumnail_url" />
+		</resultMap>
+		
+
+		<select id = "selectUserorderList" resultMap ="OrderMap">
+		SELECT
+		A.USER_NAME,
+		A.PHONE,
+		A.ADDR,
+		A.ADDR_DTL
+		FROM TB_USER_INFO A
+		WHERE A.USER_ID = #{userId}
+		</select>
+		<select id = "selectMaxOrderNo" resultType = "String">
+		SELECT TO_CHAR(MAX(ORDER_NO)+1) AS ORDER_NO FROM TB_ORDER_INFO
+		</select>
+		<insert id = "insertOrderInfo">
+		INSERT INTO TB_ORDER_INFO(
+		ORDER_NO,
+		USER_ID,
+		ORDER_GOODS_NAME,
+		ORDER_PRICE,
+		ORDER_STATUS,
+		ORDER_DT,
+		RECEIVE_NAME,
+		ADDR,
+		REG_DT
+		)
+		SELECT 
+		    #{orderNo},
+		    #{userId},
+		    CASE WHEN CNT>1 THEN GOODS_NAME || ' 외 ' ||(CNT-1) || '건'
+		     ELSE GOODS_NAME 
+		     END ,
+		     ORDER_PRICE,
+		     '배송준비중',
+		     SYSDATE,
+		     #{receiveName},
+		     #{addr},
+		     SYSDATE
+		  FROM 
+		(  
+		SELECT 
+		    COUNT(*) CNT , MAX(GOODS_NAME ) GOODS_NAME , SUM(A.BUY_QTY * B.SELL_PRICE) ORDER_PRICE
+		  FROM TB_CART_INFO A, TB_GOODS_INFO B
+		  WHERE A.GOODS_CD = B.GOODS_CD
+		    AND A.USER_ID = #{userId}
+		)
+		</insert>
+		<insert id ="insertOrderGoods">
+		INSERT INTO TB_ORDER_GOODS(
+		ORDER_NO,
+		GOODS_CD,
+		UNIT_PRICE,
+		BUY_QTY
+		)
+		SELECT
+		#{orderNo},
+		A.GOODS_CD,
+		B.SELL_PRICE,
+		A.BUY_QTY
+		FROM TB_CART_INFO A, TB_GOODS_INFO B
+		WHERE A.GOODS_CD = B.GOODS_CD
+		AND A.USER_ID = #{userId}
+		</insert>
+		<delete id = "deleteCartInfo">
+		DELETE FROM TB_CART_INFO
+		WHERE USER_ID = #{userId}
+		</delete>
+		
+				
+		</mapper>
+			

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.main.dao.MainDao">
+	<resultMap type="com.mall.table.vo.MainInfoVO" id="MainMap">
+		<result property="goodsCd" 		column="goods_cd" />
+		<result property="thumnailUrl" 		column="thumnail_url" />
+		<result property="goodsName" 		column="goods_name" />
+		<result property="sellPrice" 		column="sell_price" />
+		<result property="ctCd" 		column="ct_cd" />
+		<result property="ctName" 		column="ct_name" />
+		<result property="ctLevel" 		column="ct_level" />
+		<result property="nomalPrice" 		column="nomal_price" />
+		<result property="sellPrice" 		column="sell_price" />
+		<result property="goodsCd" 		column="goods_cd" />
+		<result property="goodsName" 		column="goods_name" />
+		</resultMap>
+		
+	
+	<select id = "selectGoodsthumnail" resultMap = "MainMap">
+		SELECT 
+    GOODS_CD, 
+    GOODS_NAME,
+    SELL_PRICE,
+    THUMNAIL_URL,
+    REG_DT
+FROM 
+    TB_GOODS_INFO 
+WHERE
+    REG_DT <![CDATA[ >= ]]> TRUNC(SYSDATE) - 7
+AND 
+   REG_DT <![CDATA[ < ]]> TRUNC(SYSDATE) + 1
+AND 
+   ROWNUM <![CDATA[ <= ]]> 12
+	</select>
+	
+	<select id = "selectctCdList" resultMap = "MainMap">
+		SELECT
+		CT_CD,
+		CT_NAME
+		FROM TB_GOODS_CATEGORY
+		WHERE CT_LEVEL = '1'
+	
+	</select>
+	<select id = "selectsthumnail" 	resultMap = "MainMap">
+		SELECT
+		GOODS_CD,
+		GOODS_NAME,
+		NORMAL_PRICE,
+		THUMNAIL_URL,
+		GOODS_NAME,
+		SELL_PRICE,
+		(
+			SELECT A.CT_CD FROM (
+				SELECT * FROM TB_GOODS_CATEGORY 
+				WHERE CT_LEVEL=1
+				) A , (
+				SELECT * FROM TB_GOODS_CATEGORY 
+				WHERE CT_LEVEL=2
+				) B, (
+				SELECT * FROM TB_GOODS_CATEGORY 
+				WHERE CT_CD=A.CT_CD
+				) C
+				WHERE A.CT_CD = B.UP_CT_CD
+				AND B.CT_CD = C.UP_CT_CD
+		) CT_CD
+		FROM TB_GOODS_INFO A
+	</select>
+</mapper>
